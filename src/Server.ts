@@ -9,39 +9,6 @@ interface SyncMap {
   [relative: string]: {src: string, dest: string},
 }
 
-/*
- * Starts the file watching service. Syncs the whole directories when the
- * service is started, and as files are changed, copies individual file
- * modifications one by one
- */
-export const start = (
-  sync: {src: string, dest: string}[],
-  exclude?: string[]
-) => {
-  const syncMap = sync.reduce<SyncMap>((map, config) => {
-    const relative = resolve(process.cwd(), config.src)
-    return {
-      ...map,
-      [relative]: {
-        src: config.src,
-        dest: config.dest,
-      }
-    }
-  }, {})
-
-  // The relative paths to each sync source
-  const paths = Object.keys(syncMap)
-
-  // initial sync
-  for (const key of paths) {
-    if (isSymlink(key)) {
-      removeSync(key)
-    }
-    syncAll(syncMap[key].dest, key, exclude)
-      .then(() => watchPaths(paths, syncMap, exclude))
-  }
-}
-
 export const watchPaths = (
   paths: string[],
   syncMap: SyncMap,
@@ -82,4 +49,38 @@ export const watchPaths = (
       syncFile(event, sourceFile, sourcePath, targetPath)
     }
   })
+}
+
+/*
+ * Starts the file watching service. Syncs the whole directories when the
+ * service is started, and as files are changed, copies individual file
+ * modifications one by one
+ */
+export const start = (
+  sync: {src: string, dest: string}[],
+  exclude?: string[]
+) => {
+  const syncMap = sync.reduce<SyncMap>((map, config) => {
+    const relative = resolve(process.cwd(), config.src)
+    return {
+      ...map,
+      [relative]: {
+        src: config.src,
+        dest: config.dest,
+      }
+    }
+  }, {})
+
+  // The relative paths to each sync source
+  const paths = Object.keys(syncMap)
+
+  // initial sync
+  for (const key of paths) {
+    if (isSymlink(key)) {
+      removeSync(key)
+    }
+    syncAll(syncMap[key].dest, key, exclude)
+      .then(() => watchPaths(paths, syncMap, exclude))
+      .catch(error => { throw error })
+  }
 }
