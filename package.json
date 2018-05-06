@@ -16,7 +16,7 @@
     "local"
   ],
   "scripts": {
-    "build": "tsc --pretty --outDir dist",
+    "build": "tsc --pretty",
     "lint": "tslint --format stylish --project .",
     "prepublish": "yarn lint && yarn build"
   },
