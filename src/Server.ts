@@ -3,30 +3,51 @@ import {sync as isSymlink} from 'is-symlink'
 import {removeSync} from 'fs-extra'
 import {watch} from 'chokidar'
 
-import {syncAll, syncFile} from './Sync'
+import {dir, syncAll, syncFile} from './Sync'
 
-interface StartOptions {sources: string[], dest: string, exclude?: string[]}
+interface SyncMap {
+  [relative: string]: {src: string, dest: string},
+}
 
 /*
  * Starts the file watching service. Syncs the whole directories when the
  * service is started, and as files are changed, copies individual file
  * modifications one by one
  */
-export const start = ({sources, dest, exclude}: StartOptions) => {
-  const ROOT_PATH = process.cwd()
+export const start = (
+  sync: {src: string, dest: string}[],
+  exclude?: string[]
+) => {
+  const syncMap = sync.reduce<SyncMap>((map, config) => {
+    const relative = resolve(process.cwd(), config.src)
+    return {
+      ...map,
+      [relative]: {
+        src: config.src,
+        dest: config.dest,
+      }
+    }
+  }, {})
 
-  const paths = sources.map(directory => resolve(process.cwd(), directory))
+  // The relative paths to each sync source
+  const paths = Object.keys(syncMap)
 
   // initial sync
-  for (const key in paths) {
+  for (const key of paths) {
     if (isSymlink(key)) {
       removeSync(key)
     }
-    syncAll(dest, key, basename(key), exclude)
+    syncAll(syncMap[key].dest, key, exclude)
+      .then(() => watchPaths(paths, syncMap, exclude))
   }
+}
 
-  const dir = (p) => p.endsWith('/') ? p : `${p}/`
-  const watcher = watch(sources, {
+export const watchPaths = (
+  paths: string[],
+  syncMap: SyncMap,
+  exclude?: string[]
+) => {
+  const watcher = watch(paths, {
     ignoreInitial: true,
     ignored: exclude
   })
@@ -34,28 +55,31 @@ export const start = ({sources, dest, exclude}: StartOptions) => {
   watcher.on('all', (event, changedPath) => {
     const sourcePath = resolve(dirname(changedPath))
     const sourceFile = basename(changedPath)
-    let rootDirectory
-    let packageName
-    for (const key in sources) {
+
+    interface Result {root: string, name: string, dest: string}
+
+    const result = paths.reduce<Result | null>((memo, key) => {
+      if (memo) return memo
       if (dir(sourcePath).startsWith(dir(key))) {
-        rootDirectory = key
-        packageName = basename(key)
-        break
+        return {root: key, name: basename(key), dest: syncMap[key].dest}
       }
+      return memo
+    }, null)
+
+    if (result) {
+      const {root, dest, name} = result
+      const relativePath = relative(
+        resolve(root),
+        sourcePath
+      )
+
+      const targetPath = join(
+        dest,
+        name,
+        relativePath
+      )
+
+      syncFile(event, sourceFile, sourcePath, targetPath)
     }
-
-    const relativePath = relative(
-      resolve(rootDirectory),
-      sourcePath
-    )
-
-    const targetPath = join(
-      ROOT_PATH,
-      dest,
-      packageName,
-      relativePath
-    )
-
-    syncFile(event, sourceFile, sourcePath, targetPath)
   })
 }

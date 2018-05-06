@@ -1,29 +1,33 @@
 import {join} from 'path'
 import {unlink, copy} from 'fs-extra'
-import rsync from 'rsyncwrapper'
+import * as rsync from 'rsyncwrapper'
 
 import {log} from './Utils'
 
+export const dir = (p) => p.endsWith('/') ? p : `${p}/`
+
 export const syncAll = (
-  rootPath: string,
+  dest: string,
   source: string,
-  name: string,
   exclude?: string[]
 ) => {
-  const options = {
-    src: `${source}/`,
-    dest: join(rootPath, name),
-    exclude,
-    recursive: true
-  }
-
-  rsync(options, (error) => {
-    if (error) {
-      console.error('error', error)
-      return
+  return new Promise((resolve, reject) => {
+    const options = {
+      src: dir(source),
+      dest: dir(dest),
+      exclude,
+      recursive: true
     }
 
-    log.info(`init ${source} -> ${join('node_modules', name)}`)
+    rsync(options, (error) => {
+      if (error) {
+        log.error(error)
+        reject(error)
+      }
+
+      log.info(`init ${source} -> ${dest}`)
+      resolve()
+    })
   })
 }
 
@@ -31,22 +35,22 @@ export const syncFile = (
   event: string,
   filename: string,
   source: string,
-  dest: string
+  rootPath: string
 ) => {
   const done = (error) => {
     if (error) {
       log.error(error)
       return
     }
-    log.info(`${event} ${join(dest, filename)}`)
+    log.info(`${event} ${join(rootPath, filename)}`)
   }
 
   if (event === 'unlink') {
-    unlink(join(dest, filename), done)
+    unlink(join(rootPath, filename), done)
   } else {
     copy(
       join(source, filename),
-      join(dest, filename),
+      join(rootPath, filename),
       done
     )
   }

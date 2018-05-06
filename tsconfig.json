@@ -5,9 +5,8 @@
     "strict": true,
     "noImplicitAny": false,
     "noErrorTruncation": true,
-    "target": "esnext",
-    "module": "esnext",
-    "jsx": "preserve",
+    "target": "es5",
+    "module": "commonjs",
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
@@ -17,15 +16,8 @@
       "./node_modules/@types"
     ],
     "lib": [
-      "dom",
       "es2015",
       "es2016"
-    ],
-    "paths": {
-      "^": ["styles"],
-      "^/*": ["styles/*"],
-      "~/*": ["components/*"],
-      "@/*": ["./*"],
-    }
+    ]
   }
 }
