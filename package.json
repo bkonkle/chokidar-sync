@@ -1,0 +1,38 @@
+{
+  "name": "chokidar-sync",
+  "version": "1.0.0",
+  "description": "Filesystem sync for local development using chokidar and rsync",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bkonkle/chokidar-sync.git"
+  },
+  "author": "Brandon Konkle <brandon@konkle.us>",
+  "license": "BSD-2-Clause",
+  "keywords": [
+    "sync",
+    "chokidar",
+    "rsync",
+    "local"
+  ],
+  "scripts": {
+    "build": "tsc --pretty --outDir dist",
+    "lint": "tslint --format stylish --project .",
+    "prepublish": "yarn lint && yarn build"
+  },
+  "devDependencies": {
+    "@types/chokidar": "^1.7.5",
+    "@types/fs-extra": "^5.0.2",
+    "@types/node": "^10.0.4",
+    "tslint": "^5.10.0",
+    "tslint-config-standard": "^7.0.0",
+    "typescript": "^2.8.3"
+  },
+  "dependencies": {
+    "chalk": "^2.4.1",
+    "chokidar": "^2.0.3",
+    "fs-extra": "^6.0.0",
+    "is-symlink": "^0.1.1",
+    "rsyncwrapper": "^2.0.1"
+  }
+}

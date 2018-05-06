@@ -1,0 +1,9 @@
+{
+  "extends": "tslint-config-standard",
+  "rules": {
+    "object-curly-spacing": [true, "never"],
+    "trailing-comma": [true, "always"],
+    "quotemark": [true, "single", "jsx-double", "avoid-escape"],
+    "strict-type-predicates": false
+  }
+}
