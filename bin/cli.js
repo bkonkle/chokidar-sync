@@ -16,7 +16,7 @@ const argv = yargs
   .example('chokidar-sync ../core-library:node_modules/core-library', 'sync the "../core-library" folder to the "node_modules/core-library" folder')
   .example('chokidar-sync ../core-library:node_modules/core-library --exclude "node_modules"', 'exclude the contents of "node_modules')
   .demand(1)
-  .option('o', {
+  .boolean('o', {
     alias: 'once',
     describe: 'Runs the sync operation once, copying all files in one go.'
   })
