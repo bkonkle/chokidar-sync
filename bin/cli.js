@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 const yargs = require('yargs')
-const start = require('../dist/index').start
+const Sync = require('../dist/index').default
 
 const VERSION = 'chokidar-cli: ' + require('../package.json').version +
   '\nchokidar: ' + require('chokidar/package').version
@@ -34,7 +34,7 @@ const main = () => {
     const args = pattern.split(':')
     return {src: args[0], dest: args[1]}
   })
-  start(sources, toArray(argv.exclude))
+  Sync.start(sources, toArray(argv.exclude))
 }
 
 main()
