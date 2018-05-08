@@ -6,6 +6,6 @@ declare const _default: {
     start: (sync: {
         src: string;
         dest: string;
-    }[], exclude?: string[] | undefined) => void;
+    }[], exclude?: string[] | undefined) => Promise<void>;
 };
 export default _default;

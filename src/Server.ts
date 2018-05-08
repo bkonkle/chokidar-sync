@@ -9,11 +9,28 @@ export interface SyncMap {
   [relative: string]: {src: string, dest: string},
 }
 
+const createSyncMap = (
+  sync: {src: string, dest: string}[]
+) => sync.reduce<SyncMap>((map, config) => {
+  const relative = resolve(process.cwd(), config.src)
+  return {
+    ...map,
+    [relative]: {
+      src: config.src,
+      dest: resolve(process.cwd(), config.dest),
+    }
+  }
+}, {})
+
 export const watchPaths = (
-  paths: string[],
-  syncMap: SyncMap,
+  sync: {src: string, dest: string}[],
   exclude?: string[]
 ) => {
+  const syncMap = createSyncMap(sync)
+
+  // The relative paths to each sync source
+  const paths = Object.keys(syncMap)
+
   const watcher = watch(paths, {
     ignoreInitial: true,
     ignored: exclude
@@ -51,6 +68,26 @@ export const watchPaths = (
   })
 }
 
+/**
+ * Runs the sync operation once for all files. Used at the beginning of the
+ * service.
+ */
+export const once = (
+  sync: {src: string, dest: string}[],
+  exclude?: string[]
+) => {
+  const syncMap = createSyncMap(sync)
+
+  // The relative paths to each sync source
+  const paths = Object.keys(syncMap)
+
+  // initial sync
+  return Promise.all(paths.map(key => {
+    if (isSymlink(key)) removeSync(key)
+    return syncAll(syncMap[key].dest, key, exclude)
+  }))
+}
+
 /*
  * Starts the file watching service. Syncs the whole directories when the
  * service is started, and as files are changed, copies individual file
@@ -60,27 +97,7 @@ export const start = (
   sync: {src: string, dest: string}[],
   exclude?: string[]
 ) => {
-  const syncMap = sync.reduce<SyncMap>((map, config) => {
-    const relative = resolve(process.cwd(), config.src)
-    return {
-      ...map,
-      [relative]: {
-        src: config.src,
-        dest: resolve(process.cwd(), config.dest),
-      }
-    }
-  }, {})
-
-  // The relative paths to each sync source
-  const paths = Object.keys(syncMap)
-
-  // initial sync
-  for (const key of paths) {
-    if (isSymlink(key)) {
-      removeSync(key)
-    }
-    syncAll(syncMap[key].dest, key, exclude)
-      .then(() => watchPaths(paths, syncMap, exclude))
-      .catch(error => { throw error })
-  }
+  return once(sync, exclude)
+    .then(() => watchPaths(sync, exclude))
+    .catch(error => { throw error })
 }

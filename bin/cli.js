@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 const yargs = require('yargs')
-const Sync = require('../dist/index').default
+const Server = require('../dist/index').default
 
 const VERSION = 'chokidar-cli: ' + require('../package.json').version +
   '\nchokidar: ' + require('chokidar/package').version
@@ -16,6 +16,10 @@ const argv = yargs
   .example('chokidar-sync ../core-library:node_modules/core-library', 'sync the "../core-library" folder to the "node_modules/core-library" folder')
   .example('chokidar-sync ../core-library:node_modules/core-library --exclude "node_modules"', 'exclude the contents of "node_modules')
   .demand(1)
+  .option('o', {
+    alias: 'once',
+    describe: 'Runs the sync operation once, copying all files in one go.'
+  })
   .option('e', {
     alias: 'exclude',
     describe: 'Pattern for files which should be ignored. ' +
@@ -34,7 +38,11 @@ const main = () => {
     const args = pattern.split(':')
     return {src: args[0], dest: args[1]}
   })
-  Sync.start(sources, toArray(argv.exclude))
+  if (argv.once) {
+    Server.once(sources, toArray(argv.exclude))
+  } else {
+    Server.start(sources, toArray(argv.exclude))
+  }
 }
 
 main()

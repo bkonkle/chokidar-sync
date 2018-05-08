@@ -13,7 +13,18 @@ var is_symlink_1 = require("is-symlink");
 var fs_extra_1 = require("fs-extra");
 var chokidar_1 = require("chokidar");
 var Sync_1 = require("./Sync");
-exports.watchPaths = function (paths, syncMap, exclude) {
+var createSyncMap = function (sync) { return sync.reduce(function (map, config) {
+    var relative = path_1.resolve(process.cwd(), config.src);
+    return __assign({}, map, (_a = {}, _a[relative] = {
+        src: config.src,
+        dest: path_1.resolve(process.cwd(), config.dest),
+    }, _a));
+    var _a;
+}, {}); };
+exports.watchPaths = function (sync, exclude) {
+    var syncMap = createSyncMap(sync);
+    // The relative paths to each sync source
+    var paths = Object.keys(syncMap);
     var watcher = chokidar_1.watch(paths, {
         ignoreInitial: true,
         ignored: exclude
@@ -37,31 +48,29 @@ exports.watchPaths = function (paths, syncMap, exclude) {
         }
     });
 };
+/**
+ * Runs the sync operation once for all files. Used at the beginning of the
+ * service.
+ */
+exports.once = function (sync, exclude) {
+    var syncMap = createSyncMap(sync);
+    // The relative paths to each sync source
+    var paths = Object.keys(syncMap);
+    // initial sync
+    return Promise.all(paths.map(function (key) {
+        if (is_symlink_1.sync(key))
+            fs_extra_1.removeSync(key);
+        return Sync_1.syncAll(syncMap[key].dest, key, exclude);
+    }));
+};
 /*
  * Starts the file watching service. Syncs the whole directories when the
  * service is started, and as files are changed, copies individual file
  * modifications one by one
  */
 exports.start = function (sync, exclude) {
-    var syncMap = sync.reduce(function (map, config) {
-        var relative = path_1.resolve(process.cwd(), config.src);
-        return __assign({}, map, (_a = {}, _a[relative] = {
-            src: config.src,
-            dest: path_1.resolve(process.cwd(), config.dest),
-        }, _a));
-        var _a;
-    }, {});
-    // The relative paths to each sync source
-    var paths = Object.keys(syncMap);
-    // initial sync
-    for (var _i = 0, paths_1 = paths; _i < paths_1.length; _i++) {
-        var key = paths_1[_i];
-        if (is_symlink_1.sync(key)) {
-            fs_extra_1.removeSync(key);
-        }
-        Sync_1.syncAll(syncMap[key].dest, key, exclude)
-            .then(function () { return exports.watchPaths(paths, syncMap, exclude); })
-            .catch(function (error) { throw error; });
-    }
+    return exports.once(sync, exclude)
+        .then(function () { return exports.watchPaths(sync, exclude); })
+        .catch(function (error) { throw error; });
 };
 //# sourceMappingURL=Server.js.map
