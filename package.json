@@ -15,6 +15,9 @@
     "rsync",
     "local"
   ],
+  "bin": {
+    "chokidar-sync": "./bin/cli.js"
+  },
   "scripts": {
     "build": "tsc --pretty",
     "lint": "tslint --format stylish --project .",
@@ -33,6 +36,7 @@
     "chokidar": "^2.0.3",
     "fs-extra": "^6.0.0",
     "is-symlink": "^0.1.1",
-    "rsyncwrapper": "^2.0.1"
+    "rsyncwrapper": "^2.0.1",
+    "yargs": "^11.0.0"
   }
 }

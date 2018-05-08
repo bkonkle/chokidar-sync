@@ -66,7 +66,7 @@ export const start = (
       ...map,
       [relative]: {
         src: config.src,
-        dest: config.dest,
+        dest: resolve(process.cwd(), config.dest),
       }
     }
   }, {})
