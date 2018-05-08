@@ -5,7 +5,7 @@ import {watch} from 'chokidar'
 
 import {dir, syncAll, syncFile} from './Sync'
 
-interface SyncMap {
+export interface SyncMap {
   [relative: string]: {src: string, dest: string},
 }
 

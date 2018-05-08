@@ -56,6 +56,3 @@ jspm_packages/
 
 # dotenv environment variables file
 .env
-
-# Compiled files
-dist

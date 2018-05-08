@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 const yargs = require('yargs')
-const start = require('../index').start
+const start = require('../dist/index').start
 
 const VERSION = 'chokidar-cli: ' + require('../package.json').version +
   '\nchokidar: ' + require('chokidar/package').version

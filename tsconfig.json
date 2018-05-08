@@ -2,6 +2,7 @@
   "compileOnSave": false,
   "compilerOptions": {
     "outDir": "dist",
+    "declaration": true,
     "strict": true,
     "noImplicitAny": false,
     "noErrorTruncation": true,
