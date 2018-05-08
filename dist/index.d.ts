@@ -1,6 +1,6 @@
-import * as Server from './src/Server';
-import * as Sync from './src/Sync';
-import * as Utils from './src/Utils';
+import * as Server from './Server';
+import * as Sync from './Sync';
+import * as Utils from './Utils';
 export { Server, Sync, Utils };
 declare const _default: {
     start: (sync: {
